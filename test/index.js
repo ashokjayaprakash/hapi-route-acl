@@ -50,22 +50,22 @@ describe('hapi-route-acl', function() {
   describe('registration', function() {
     var server;
 
-    beforeEach(function(done) {
+    beforeEach(() => {
       server = new Hapi.Server();
       server.connection();
-      done();
+      
     });
 
-    it('should return an error if options.permissionsFunc is not defined', function(done) {
+    it('should return an error if options.permissionsFunc is not defined', () => {
       server.register({
         register: require('./../')
       }, function(err) {
         expect(err).to.exist();
-        done();
+        
       });
     });
 
-    it('should return an error if options.permissionsFunc is not a function', function(done) {
+    it('should return an error if options.permissionsFunc is not a function', () => {
       server.register({
         register: require('./../'),
         options: {
@@ -73,7 +73,7 @@ describe('hapi-route-acl', function() {
         }
       }, function(err) {
         expect(err).to.exist();
-        done();
+        
       });
     });
 
@@ -82,7 +82,7 @@ describe('hapi-route-acl', function() {
   describe('route protection', function() {
     var server;
 
-    beforeEach(function(done) {
+    beforeEach(() => {
       server = new Hapi.Server();
       server.connection();
       server.register({
@@ -95,10 +95,10 @@ describe('hapi-route-acl', function() {
           throw err;
         }
       });
-      done();
+      
     });
 
-    it('should allow access to a route if plugin configuration is not defined in route config', function(done) {
+    it('should allow access to a route if plugin configuration is not defined in route config', () => {
       server.route({
         method: 'GET',
         path: '/unprotected1',
@@ -113,11 +113,11 @@ describe('hapi-route-acl', function() {
         url: '/unprotected1'
       }, function(res) {
         expect(res.statusCode).to.equal(200);
-        done();
+        
       });
     });
 
-    it('should allow access to a route if required permission array is empty', function(done) {
+    it('should allow access to a route if required permission array is empty', () => {
       server.route({
         method: 'GET',
         path: '/unprotected2',
@@ -137,11 +137,11 @@ describe('hapi-route-acl', function() {
         url: '/unprotected2'
       }, function(res) {
         expect(res.statusCode).to.equal(200);
-        done();
+        
       });
     });
 
-    it('should allow access to a route if user has permission', function(done) {
+    it('should allow access to a route if user has permission', () => {
       server.route({
         method: 'GET',
         path: '/cars',
@@ -161,11 +161,11 @@ describe('hapi-route-acl', function() {
         url: '/cars'
       }, function(res) {
         expect(res.statusCode).to.equal(200);
-        done();
+        
       });
     });
 
-    it('should allow access for permissions defined as a string', function(done) {
+    it('should allow access for permissions defined as a string', () => {
       server.route({
         method: 'GET',
         path: '/cars/{id}',
@@ -185,11 +185,11 @@ describe('hapi-route-acl', function() {
         url: '/cars/1'
       }, function(res) {
         expect(res.statusCode).to.equal(200);
-        done();
+        
       });
     });
 
-    it('should deny access to a route if user does not have permission', function(done) {
+    it('should deny access to a route if user does not have permission', () => {
       server.route({
         method: 'POST',
         path: '/cars',
@@ -208,20 +208,12 @@ describe('hapi-route-acl', function() {
         method: 'POST',
         url: '/cars'
       }, function(res) {
-        expect(res.statusCode).to.equal(401);
-        done();
+        expect(res.statusCode).to.equal(401);        
       });
     });
 
-    it('should throw an exception if route permission is not a string', function(done) {
-      server.ext('onPostAuth', function (request, reply) {
-        request.domain.on('error', function (error) {
-          request.caughtError = error;
-        });
-
-        return reply.continue();
-      }, { before: ['hapi-route-acl'] });
-
+    it('should throw an exception if route permission is not a string', () => {
+      
       server.route({
         method: 'GET',
         path: '/cars',
@@ -240,24 +232,15 @@ describe('hapi-route-acl', function() {
       server.inject({
         method: 'GET',
         url: '/cars'
-      }, function(res) {
-        var error = res.request.caughtError;
-
-        expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('Uncaught error: permission must be a string');
-        done();
+      }).catch((err) => {
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.equal('permission must be a string');
       });
+      
     });
 
-    it('should throw an exception if route permission is not formatted properly', function(done) {
-      server.ext('onPostAuth', function (request, reply) {
-        request.domain.on('error', function (error) {
-          request.caughtError = error;
-        });
-
-        return reply.continue();
-      }, { before: ['hapi-route-acl'] });
-
+    it('should throw an exception if route permission is not formatted properly', () => {
+      
       server.route({
         method: 'GET',
         path: '/cars',
@@ -276,16 +259,13 @@ describe('hapi-route-acl', function() {
       server.inject({
         method: 'GET',
         url: '/cars'
-      }, function(res) {
-        var error = res.request.caughtError;
-
+      }).catch((error) => {
         expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('Uncaught error: permission must be formatted: [routeName]:[read|create|edit|delete]');
-        done();
+        expect(error.message).to.equal('permission must be formatted: [routeName]:[read|create|edit|delete]');
       });
     });
 
-    it('should deny access to a route if user permission is not defined for the route', function(done) {
+    it('should deny access to a route if user permission is not defined for the route', () => {
       server.route({
         method: 'DELETE',
         path: '/foobar/{id}',
@@ -305,11 +285,11 @@ describe('hapi-route-acl', function() {
         url: '/foobar/1'
       }, function(res) {
         expect(res.statusCode).to.equal(401);
-        done();
+        
       });
     });
 
-    it('should allow access to a route with multiple permission requirements if user has permissions', function(done) {
+    it('should allow access to a route with multiple permission requirements if user has permissions', () => {
       server.route({
         method: 'GET',
         path: '/cars/{id}/drivers',
@@ -329,11 +309,11 @@ describe('hapi-route-acl', function() {
         url: '/cars/1/drivers'
       }, function(res) {
         expect(res.statusCode).to.equal(200);
-        done();
+        
       });
     });
 
-    it('should deny access to a route with two permission requirements if user does not have permissions', function(done) {
+    it('should deny access to a route with two permission requirements if user does not have permissions', () => {
       server.route({
         method: 'DELETE',
         path: '/cars/{carId}/drivers/{driverId}',
@@ -353,11 +333,11 @@ describe('hapi-route-acl', function() {
         url: '/cars/1/drivers/1'
       }, function(res) {
         expect(res.statusCode).to.equal(401);
-        done();
+        
       });
     });
 
-    it('should deny access to a route with multiple permission requirements if user does not have permissions', function(done) {
+    it('should deny access to a route with multiple permission requirements if user does not have permissions', () => {
       server.route({
         method: 'GET',
         path: '/cars/{carId}/drivers/{driverId}/abilities/{abilitiesId}',
@@ -377,7 +357,7 @@ describe('hapi-route-acl', function() {
         url: '/cars/1/drivers/1/abilities/1'
       }, function(res) {
         expect(res.statusCode).to.equal(401);
-        done();
+        
       });
     });
 
